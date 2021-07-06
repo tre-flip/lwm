@@ -5,7 +5,7 @@
 * Planned features
   Items on this list are numbered according to their priority (the smaller the number, the higher the priority).
   Features that are being considered are marked with "(?)".
-  Features 8-10 can be implemented via external programs, but this approach will require partial support for EWMH and/or external scripting of this window manager.
+  Features 9-11 can be implemented via external programs, but this approach will require partial support for EWMH and/or external scripting of this window manager.
 
   1. REPL friendly development workflow.
      Code must be split into small functions where it's possible.
