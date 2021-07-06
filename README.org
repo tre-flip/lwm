@@ -1,5 +1,5 @@
 * Overview
-  This will be a very light tiling window manager for X11 in Common Lisp.
+  Light tiling/stacking window manager for X11 in Common Lisp.
   At this moment I'm studying X11 protocol and window managers written in CL to understand how to implement features listed below.
 
 * Planned features
