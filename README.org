@@ -1,0 +1,28 @@
+* Overview
+  This will be a very light tiling window manager for X11 in Common Lisp.
+  At this moment I'm studying X11 protocol and window managers written in CL to understand how to implement features listed below.
+
+* Planned features
+  Items on this list are numbered according to their priority (the smaller the number, the higher the priority).
+  Features that are being considered are marked with "(?)".
+  Features 8-10 can be implemented via external programs, but this approach will require partial support for EWMH and/or external scripting of this window manager.
+
+  1. REPL friendly development workflow.
+     Code must be split into small functions where it's possible.
+     Global variables and X11 resources must be initialized in a separate function.
+  2. Convenient and dynamic hotkey definition.
+  3. Floating windows.
+  4. Dynamic tiling like in DWM.
+  5. Tags or multiple workspaces.
+  6. Small rectangular handles around the corners of every managed window.
+     These handles allow the user to move and resize floating windows and change stacking layout proportions using the mouse.
+     This feature must be implemented without reparenting.
+  7. Very basic theming.
+     The user must be able to customize the colors of window borders and handles.
+  8. (?) Partial EWMH support.
+  9. (?) Window switcher.
+  10. (?) Status bar.
+  11. (?) Pop-up menus.
+
+      
+      
