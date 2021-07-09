@@ -4,6 +4,10 @@
 
 (in-package :lwm)
 
+(defparameter *windows* nil
+  "List of managed windows.
+Focused window is put to the beginning of this list.")
+
 (defun win= (a b)
   "Equality predicate for windows"
   (and (xlib:window-p a) (xlib:window-p b) (xlib:window-equal a b)))
@@ -41,7 +45,7 @@ the window to be focused."
 (defun get-transients-of (window)
   "Get all transient windows of WINDOW."
   (restart-case
-      (loop for w in (xlib:query-tree *root*)
+      (loop for w in (xlib:query-tree (root))
             nconc (loop for id in (xlib:get-property w :WM_TRANSIENT_FOR)
                         when (= id (xlib:window-id window))
                           collect w))
@@ -49,6 +53,13 @@ the window to be focused."
     (match-error (c)
       (format t "~&get-transients-of: ~a ~a~%" c window)
       nil)))
+
+(defun x11-capitalize (string)
+  "Returns a capitalize string according to X11 class name
+convention."
+  (if (char= (elt string 0) #\x)
+      (concatenate 'string "X" (string-capitalize (subseq string 1)))
+      (string-capitalize string)))
 
 (defun xclass (window)
   "Get X window class."
@@ -58,14 +69,13 @@ the window to be focused."
     (declare (ignore name))
     class))
 
-
-;; TODO: implement
 (defun move (window &key (respect-hints t) x y width height dx dy dw dh)
   "Move a window. Returns effective size values."
-  )
+  (error "MOVE is not implemented yet."))
 
+;; TODO: implement it
 (defun floating-p (window)
-  (error "FLOATING-P is not implemented yet."))
+  t)
 
 (defun place-tiled (window)
   (error "PLACE-TILED is not implemented yet."))
@@ -100,33 +110,44 @@ the window to be focused."
           (format t "~&configure-request: ~a ~a~%" c window)
           'processed)))))
 
-;; TODO: implement, probably needs value-mask
 (defun place-window (window &optional x y width height value-mask)
   "Set initial geometry of the window."
-  ;; if a window is not tiled, honor it's size hints
+  ;; if honor size hints of floating windows
   (if (floating-p window)
       (place-floating window x y width height value-mask)
       (place-tiled window)))
 
-;; TODO: implement
-(defun center (window)
-  "Cetner the window respecting its size."
+;; Following functions take a predicate that returns a list of windows
+;; and perform an operation on each of these windows or on current window.
+;; It's unclear how rules must be represented.
+
+(defun next (&optional rule)
+  "Get text matching window")
+
+(defun center (&optional rule)
+  "Cetner windows respecting their sizes."
   )
 
-;; TODO: implement
-(defun raise (widnow)
-  "Raise WINDOW to the top."
+(defun fullscreen (&optional rule)
+  "Make windows fullscreen, ignoring their size hints, EWMH struts.
+Don't draw decorations for these windows."
   )
 
-;; TODO: implement
-(defun focus (window)
-  "Focus WINDOW."
+(defun maximize (&optional rule)
+  "Maximize windows making them occupy entire working area.
+Respects EWMH struts."
   )
 
-;; TODO: implement
-(defun next ()
-  "Focus next window.")
+(defun iconify (&optional rule)
+  
+  )
+(defun raise (&optional rule)
+  "Raise to the top in the stacking order."
+  )
 
-;; TODO: implement
-(defun prev ()
+(defun focus (&optional rule)
+  "Focus matching windows."
+  )
+
+(defun prev (&optional rule)
   "Focus previous window.")

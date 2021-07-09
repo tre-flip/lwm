@@ -19,10 +19,7 @@
      This feature must be implemented without reparenting.
   7. Very basic theming.
      The user must be able to customize the colors of window borders and handles.
-  8. (?) Partial EWMH support.
+  8. Partial EWMH support.
   9. (?) Window switcher.
   10. (?) Status bar.
-  11. (?) Pop-up menus.
-
-      
-      
+  11. (?) Pop-up menus.      

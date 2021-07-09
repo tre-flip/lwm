@@ -2,12 +2,14 @@
 
 (in-package :lwm)
 
-;; TODO: implementation, docstring
+(defparameter *direct-shortcuts* nil "Direct shortcuts alist.")
+
+
 (defun grab-keybindings ()
   "Grab keys that are defined in ..."
-  )
+  (error "GRAB-KEYBINDINGS is not implemented yet."))
 
 ;; TODO: implementation, docstring
 (defun ungrab-keybindings ()
-  "Ungrab keys that are defined in ..."
-  )
+  "Ungrab that are defined in ..."
+  (error "UNGRAB-KEYBINDINGS is not implemented yet."))

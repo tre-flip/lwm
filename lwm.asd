@@ -8,6 +8,7 @@
   :serial t
   :depends-on ("clx" "slynk")
   :components ((:file "package")
+	       (:file "display")
 	       (:file "keys")
 	       (:file "windows")
 	       (:file "handlers")

@@ -5,20 +5,7 @@
 (in-package :lwm)
 
 ;;; SPECIAL VARIABLES ;;;
-(defparameter *display* nil "Main display.")
-(defparameter *screen* nil "Main screen.")
-(defparameter *root* nil "Root window.")
-(defparameter *windows* nil
-  "List of managed windows.
-Focused window is put to the beginning of this list.")
-(defparameter *direct-shortcuts* nil "Direct shortcuts alist.")
-(defparameter *handlers* (make-list (length xlib::*event-key-vector*)
-                              :initial-element #'(lambda (&rest slots))))
 
-;;; WINDOWS ;;;
-
-
-;;; EVENT HANDLERS ;;;
 
 ;; Restart functions
 (defmacro defrestart (name)
@@ -29,22 +16,12 @@ Focused window is put to the beginning of this list.")
            (when ,restart
              (invoke-restart ,restart ,c)))))))
 
-
 ;;; INIT, MAIN, CLEANUP ;;;
-
-(defun init (&optional display)
-  "Request X resources."
-  (if display
-      (setf *display* (xlib:open-default-display display))
-      (setf *display* (xlib:open-default-display)))
-  (setf *screen* (xlib:display-default-screen *display*))
-  (setf *root* (xlib:screen-root *screen*))
-  (grab-keybindings))
 
 (defun cleanup ()
   "Free all X resources."
-  (xlib:close-display *display*)
-  (ungrab-keybindings))
+  (ungrab-keybindings)
+  (x-disconnect))
 
 (defun event-loop ()
   "X event loop."
@@ -57,9 +34,11 @@ Focused window is put to the beginning of this list.")
        (event-loop)
     (cleanup)))
 
-(defun main (&key debug)
-  "Start the event loop."
-  (init)
+(defun main (&key display-name)
+  "Connect to X11 server and start the event loop.
+If if :DISPLAY-NAME is provided, connect to this display."
+  (x-connect :display-name display-name)
+  (grab-keybindings)
   (unwind-protect
        (event-loop)
     (cleanup)))

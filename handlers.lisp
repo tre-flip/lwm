@@ -6,6 +6,9 @@
 
 (in-package :lwm)
 
+(defparameter *handlers* (make-list (length xlib::*event-key-vector*)
+                              :initial-element #'(lambda (&rest slots))))
+
 (defmacro defhandler (event keys &body body)
   (let ((fn-name (gensym (symbol-name event)))
         (event-slots (gensym)))
@@ -18,11 +21,12 @@
 (defhandler :key-press (window state code)
   )
 
+;; keyboard shortcuts are handled here
 (defhandler :button-press (state code child x y)
   (let ((window (managed-p child)))
     (when (and window (eql (xlib:window-override-redirect window) :off))
-      ;; handle button press here
       )))
+
 
 (defhandler :motion-notify (event-window root-x root-y time)
   (let ((window (managed-p event-window)))
@@ -72,3 +76,13 @@
 (defhandler :configure-request (window x y width height value-mask)
   ;; inspect first 4 bits of value-mask
   (place-window window x y width height value-mask))
+
+;; EWMH messages are handled here
+;; https://sharplispers.github.io/clx/Client-Communications-Events.html#index-_003aclient_002dmessage
+(defhandler :client-message (window type)
+  )
+
+;; EWMH properties are handled here
+;; https://sharplispers.github.io/clx/Client-Communications-Events.html#index-_003aclient_002dmessage
+(defhandler :property-notify (window atom state)
+  )
