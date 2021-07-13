@@ -8,6 +8,9 @@
   "List of managed windows.
 Focused window is put to the beginning of this list.")
 
+(defparameter *border-width* 3)
+(defparameter *border-color* 500)
+
 (defun win= (a b)
   "Equality predicate for windows"
   (and (xlib:window-p a) (xlib:window-p b) (xlib:window-equal a b)))
@@ -69,12 +72,69 @@ convention."
     (declare (ignore name))
     class))
 
-(defun move (window &key (respect-hints t) x y width height dx dy dw dh)
-  "Move a window. Returns effective size values."
-  (error "MOVE is not implemented yet."))
+(defun pinned-p (window) (getf (xlib:window-plist window) :pinned))
+(defun pin (window) (setf (getf (xlib:window-plist window) :pinned) t))
+(defun unpin (window) (remf (xlib:window-plist window) :pinned))
+(defun toggle-pin ()
+  (if (pinned-p (current-window)) (unpin (current-window)) (pin (current-window))))
+
+(defun correct-size (window x y width height dx dy dw dh)
+  "Correct a window's dimensions with its sizehints."
+  (let ((hints (xlib:wm-normal-hints window)))
+    (when hints (let* ((min-w (or (xlib:wm-size-hints-min-width hints) 1))
+                       (min-h (or (xlib:wm-size-hints-min-height hints) 1))
+                       (inc-w (or (xlib:wm-size-hints-width-inc hints) 1))
+                       (inc-h (or (xlib:wm-size-hints-height-inc hints) 1))
+                       (base-w (or (xlib:wm-size-hints-base-width hints) 0))
+                       (base-h (or (xlib:wm-size-hints-base-height hints) 0)))
+                  (when x (setf x (* inc-w (truncate x inc-w))))
+                  (when y (setf y (* inc-h (truncate y inc-h))))
+                  (when width
+                    (decf width base-w)
+                    (setf width (max min-w (+ (* inc-w (truncate width inc-w)) base-w))))
+                  (when height
+                    (decf height base-h)
+                    (setf height (max min-h (+ (* inc-h (truncate height inc-h)) base-h))))
+                  (when dx (setf dx (* inc-w (truncate dx inc-w))))
+                  (when dy (setf dy (* inc-h (truncate dy inc-h))))
+                  (when dh (setf dh (* inc-h (truncate dh inc-h))))
+                  (when dw (setf dw (* inc-w (truncate dw inc-w))))))
+    (values x y width height dx dy dw dh)))
+
+(defun move (window &key x y width height dx dy dw dh)
+  "Move a window with respect to sizehints. Returns effective size
+values."
+  (multiple-value-bind (x y width height dx dy dw dh)
+      (correct-size window x y width height dx dy dw dh)
+    ;; if not provided get current geometry
+    (unless x (setf x (xlib:drawable-x window)))
+    (unless y (setf y (xlib:drawable-y window)))
+    (unless width (setf width (xlib:drawable-width window)))
+    (unless height (setf height (xlib:drawable-height window)))
+
+    ;; dx, dy, dw and dh are rewritten in absolute form
+    (when dx (incf x dx))
+    (when dy (incf y dy))
+    (when dw (let ((new-w (+ width dw)))
+               (cond ((minusp new-w)
+                      (incf x new-w)
+                      (setf width (abs new-w)))
+                     (t (setf width new-w)))))
+    (when dh (let ((new-h (+ height dh)))
+               (cond ((minusp new-h)
+                      (incf y new-h)
+                      (setf height (abs new-h)))
+                     (t (setf height new-h)))))
+    (unless (pinned-p window)
+      (setf (xlib:drawable-x window) x
+            (xlib:drawable-y window) y
+            (xlib:drawable-width window) width
+            (xlib:drawable-height window) height))
+    (values x y width height dx dy dw dh)))
 
 ;; TODO: implement it
 (defun floating-p (window)
+  (format t "WARNING: floating-p is a stub!")
   t)
 
 (defun place-tiled (window)
@@ -110,44 +170,49 @@ convention."
           (format t "~&configure-request: ~a ~a~%" c window)
           'processed)))))
 
+(defun enable-border (window)
+  (setf (xlib:drawable-border-width window) *border-width*
+	(xlib:window-border window) *border-color*))
+
 (defun place-window (window &optional x y width height value-mask)
   "Set initial geometry of the window."
   ;; if honor size hints of floating windows
+  (enable-border window)
   (if (floating-p window)
       (place-floating window x y width height value-mask)
       (place-tiled window)))
 
-;; Following functions take a predicate that returns a list of windows
-;; and perform an operation on each of these windows or on current window.
-;; It's unclear how rules must be represented.
+;; Following functions take a list of windows and perfrom an operation on them.
+;; They must be composable with funcitons that return a list of windows.
 
-(defun next (&optional rule)
-  "Get text matching window")
+(defun next (windows)
+  "Get text matching window"
+  )
 
-(defun center (&optional rule)
+(defun center (windows)
   "Cetner windows respecting their sizes."
   )
 
-(defun fullscreen (&optional rule)
+(defun fullscreen (windows)
   "Make windows fullscreen, ignoring their size hints, EWMH struts.
 Don't draw decorations for these windows."
   )
 
-(defun maximize (&optional rule)
+(defun maximize (windows)
   "Maximize windows making them occupy entire working area.
 Respects EWMH struts."
   )
 
-(defun iconify (&optional rule)
+(defun iconify (windows)
   
   )
-(defun raise (&optional rule)
+(defun raise (windows)
   "Raise to the top in the stacking order."
   )
 
-(defun focus (&optional rule)
+(defun focus (windows)
   "Focus matching windows."
   )
 
-(defun prev (&optional rule)
+(defun prev (windows)
   "Focus previous window.")

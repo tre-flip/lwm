@@ -19,7 +19,7 @@
 
 
 (defhandler :key-press (window state code)
-  )
+  (resolve-key state code window))
 
 ;; keyboard shortcuts are handled here
 (defhandler :button-press (state code child x y)
@@ -45,7 +45,7 @@
 ;; invoked when a window IS displayed
 (defhandler :map-notify (window override-redirect-p)
   (unless override-redirect-p
-    (focus (managed-p window))))
+    (focus window)))
 
 ;; this handler is invoked right before the window is created
 ;; 1. xlib:map-window displays the window
